@@ -1,25 +1,6 @@
-#include <stdlib.h>
-#include "espressif/esp_common.h"
-#include "esp/uart.h"
-#include "FreeRTOS.h"
-#include "task.h"
-#include "esp8266.h"
-#include "quickjs/quickjs-libc.h"
+/* File generated automatically by the QuickJS compiler. */
 
-const int gpio = 2;
-
-/* This task uses the high level GPIO API (esp_gpio.h) to blink an LED.
- *
- */
-void blinkenTask(void *pvParameters) {
-    gpio_enable(gpio, GPIO_OUTPUT);
-    while(1) {
-        gpio_write(gpio, 1);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-        gpio_write(gpio, 0);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
-}
+#include "quickjs-libc.h"
 
 const uint32_t hello_size = 98;
 
@@ -39,10 +20,8 @@ const uint8_t hello[98] = {
  0x01, 0x00,
 };
 
-int argc = 0;
-char** argv[0] = {};
-
-void runJS(void) {
+int main(int argc, char **argv)
+{
   JSRuntime *rt;
   JSContext *ctx;
   rt = JS_NewRuntime();
@@ -54,16 +33,10 @@ void runJS(void) {
   JS_AddIntrinsicMapSet(ctx);
   JS_AddIntrinsicTypedArrays(ctx);
   JS_AddIntrinsicPromise(ctx);
-  /* js_std_add_helpers(ctx, argc, argv); */
+  js_std_add_helpers(ctx, argc, argv);
   js_std_eval_binary(ctx, hello, hello_size, 0);
   js_std_loop(ctx);
   JS_FreeContext(ctx);
   JS_FreeRuntime(rt);
-  return;
-}
-
-void user_init(void) {
-    uart_set_baud(0, 115200);
-    runJS();
-    xTaskCreate(blinkenTask, "blinkenTask", 256, NULL, 2, NULL);
+  return 0;
 }
